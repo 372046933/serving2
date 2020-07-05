@@ -1,0 +1,52 @@
+licenses(["notice"])  # Apache 2.0
+
+package(default_visibility = ["//visibility:public"])
+load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda_is_configured", "if_cuda")
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@bazel_tools//platforms:windows"],
+)
+
+cc_library(
+    name = "cuda",
+    data = [
+        "@local_config_cuda//cuda:cudart",
+    ],
+    linkopts = select({
+        "@local_config_cuda//cuda:darwin": [
+            "-Wl,-rpath,../local_config_cuda/cuda/lib",
+            "-Wl,-rpath,../local_config_cuda/cuda/extras/CUPTI/lib",
+        ],
+        ":windows": [],
+        "//conditions:default": [
+            "-Wl,-rpath,../local_config_cuda/cuda/lib64",
+            "-Wl,-rpath,../local_config_cuda/cuda/extras/CUPTI/lib64",
+        ],
+    }),
+    deps = [
+        "@local_config_cuda//cuda:cudart",
+        "@local_config_cuda//cuda:cublas",
+    ],
+)
+
+cc_library(
+    name = "beam_search_ops_gpu",
+    srcs = [
+        "cc/ops/beam_search_ops.cc",
+        "cc/ops/beam_search_ops_no_addons_prefix.cc",
+        "cc/kernels/beam_search_ops.cc",
+        "cc/kernels/beam_search_ops_gpu.cu.cc",
+    ],
+    hdrs = [
+        "cc/kernels/beam_search_ops.h",
+    ],
+    deps = [
+        "@org_tensorflow//tensorflow/core:tensorflow_opensource",
+    ] + if_cuda_is_configured([":cuda", "@local_config_cuda//cuda:cuda_headers", "@local_config_cuda//cuda:cublas_headers"]),
+    alwayslink = 1,
+    copts = select({
+        ":windows": ["/D__CLANG_SUPPORT_DYN_ANNOTATION__", "/DEIGEN_MPL2_ONLY", "/DEIGEN_MAX_ALIGN_BYTES=64", "/DEIGEN_HAS_TYPE_TRAITS=0", "/DTF_USE_SNAPPY", "/showIncludes", "/MD", "/O2", "/DNDEBUG", "/w", "-DWIN32_LEAN_AND_MEAN", "-DNOGDI", "/d2ReducedOptimizeHugeFunctions", "/arch:AVX", "/std:c++14", "-DTENSORFLOW_MONOLITHIC_BUILD", "/DPLATFORM_WINDOWS", "/DEIGEN_HAS_C99_MATH", "/DTENSORFLOW_USE_EIGEN_THREADPOOL", "/DEIGEN_AVOID_STL_ARRAY", "/Iexternal/gemmlowp", "/wd4018", "/wd4577", "/DNOGDI", "/UTF_COMPILE_LIBRARY"],
+        "//conditions:default": ["-pthread", "-D_GLIBCXX_USE_CXX11_ABI=0"],
+    }) + if_cuda_is_configured(["-DTENSORFLOW_USE_NVCC=1", "-DGOOGLE_CUDA=1", "-x cuda", "-nvcc_options=relaxed-constexpr", "-nvcc_options=ftz=true"]),
+)

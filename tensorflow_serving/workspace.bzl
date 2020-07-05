@@ -87,6 +87,18 @@ def tf_serving_workspace():
         repo_mapping = {"@com_google_re2": "@com_googlesource_code_re2"},
     )
 
+    # ===== TF.Addons dependencies
+    http_archive(
+        name = "org_tensorflow_addons",
+        sha256 = "a41cc626bca1f3b2020b5d85fe93a2eec5eeda841a7399ff6c7a571f1a9e53b4",
+        strip_prefix = "addons-0.10.0",
+        urls = [
+            "https://github.com/tensorflow/addons/archive/v0.10.0.zip",
+        ],
+        patches = ["@//third_party/tf_addons:tfaddons.patch"],
+        patch_args = ["-p1"],
+    )
+
     http_archive(
         name = "com_google_sentencepiece",
         strip_prefix = "sentencepiece-1.0.0",

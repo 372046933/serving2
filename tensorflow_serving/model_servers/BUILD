@@ -298,6 +298,11 @@ SUPPORTED_TENSORFLOW_OPS = if_v2([]) + if_not_v2([
     "@org_tensorflow//tensorflow/contrib:contrib_ops_op_lib",
 ]) + [
     "@org_tensorflow_text//tensorflow_text:ops_lib",
+    #"@org_tensorflow_addons//tensorflow_addons/custom_ops/seq2seq:beam_search_ops_gpu",
+    "//tensorflow_serving/custom_ops/tensorflow_faster_transformer:faster_transformer_ops_gpu",
+    "//tensorflow_serving/custom_ops/tensorflow_faster_transformer:decoder_ops_gpu",
+    "//tensorflow_serving/custom_ops/tensorflow_faster_transformer:decoding_ops_gpu",
+    "//tensorflow_serving/custom_ops/seq2seq:beam_search_ops_gpu",
 ]
 
 cc_library(
