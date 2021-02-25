@@ -15,6 +15,9 @@ limitations under the License.
 
 #include "tensorflow_serving/util/class_registration_util.h"
 
+#include "tensorflow/core/lib/core/errors.h"
+#include "tensorflow/core/lib/strings/str_util.h"
+
 namespace tensorflow {
 namespace serving {
 
